@@ -1,8 +1,13 @@
 package com.anr.call_recording_app_1
 
+import android.Manifest.permission
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.provider.Settings
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -40,6 +45,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
 import com.anr.call_recording_app_1.service.getCallLogs
 import com.anr.call_recording_app_1.ui.theme.Callrecordingapp1Theme
 import com.anr.recording.model.RegisteredCall
@@ -47,9 +53,26 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 class MainActivity : ComponentActivity() {
+
+    private val CAMERA_REQUEST = 1888
+
+    @RequiresApi(34)
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
+        var result = ActivityCompat.requestPermissions(this, arrayOf(
+            permission.RECORD_AUDIO,permission.READ_CALL_LOG,
+            permission.READ_PHONE_STATE,
+            permission.READ_MEDIA_AUDIO,
+            permission.READ_EXTERNAL_STORAGE,
+            permission.MANAGE_DEVICE_POLICY_ACCESSIBILITY
+        ), PackageManager.PERMISSION_GRANTED)
+//        Settings.Secure.putString(getContentResolver(),
+//            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES, "com.anr.call_recording_app_1/CallRecordingService");
+//        Settings.Secure.putString(getContentResolver(),
+//            Settings.Secure.ACCESSIBILITY_ENABLED, "1");
+        Log.i("result", result.toString());
 
         setContent {
             Callrecordingapp1Theme {

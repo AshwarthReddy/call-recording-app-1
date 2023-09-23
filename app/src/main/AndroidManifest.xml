@@ -6,14 +6,16 @@
         android:name="android.hardware.telephony"
         android:required="false" />
 
-    <uses-permission
-        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        tools:ignore="ScopedStorage" />
-    <uses-permission android:name="android.permission.STORAGE" /> <!-- suppress DeprecatedClassUsageInspection -->
-    <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <uses-permission android:name="android.permission.MANAGE_DEVICE_POLICY_ACCESSIBILITY" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
 
     <application
         android:allowBackup="true"
@@ -25,11 +27,16 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Callrecordingapp1"
         tools:targetApi="31">
+        <service
+            android:name=".CallRecordingService"
+            android:enabled="true"
+            android:exported="true"></service>
+
         <activity
             android:name=".CallerIdHistory"
             android:exported="false"
-        android:label="@string/activity_caller_id_history"
-        android:theme="@style/Theme.AppCompat" />
+            android:label="@string/activity_caller_id_history"
+            android:theme="@style/Theme.AppCompat" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -43,6 +50,25 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <service android:name=".CallRecordingService"/>
+        <service android:name=".CallRecordingService"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:label="@string/accessibility_service_label"
+            android:enabled="true"
+            android:exported="true"
+            android:accessibilityFeedbackType="feedbackAllMask">
+            <intent-filter>
+                <action
+                    android:name=".CallRecordingService"
+                    android:value=".CallRecordingService" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibility-service"
+                android:resource="@xml/accessibility_service_config" />
+        </service>
     </application>
 
 </manifest>
