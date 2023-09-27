@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">call-recording-app-1</string>
     <string name="activity_caller_id_history">CallerIdHistory</string>
+    <string name="recording_player_id">call recording player</string>
 </resources>

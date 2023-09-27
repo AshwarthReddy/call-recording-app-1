@@ -39,17 +39,19 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.anr.call_recording_app_1.service.CallRecordingPlayerActivity
 import com.anr.call_recording_app_1.service.getCallHistory
 import com.anr.recording.model.RegisteredCall
+import java.io.File
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-class CallerIdHistory : AppCompatActivity() {
+class CallerIdHistoryActivity : AppCompatActivity() {
 
     companion object {
         private const val mobileNumber = "mobilenumber"
         fun intent(context: Context, callerId: RegisteredCall) =
-            Intent(context, CallerIdHistory::class.java).apply {
+            Intent(context, CallerIdHistoryActivity::class.java).apply {
                 putExtra(mobileNumber, callerId)
             }
     }
@@ -64,14 +66,10 @@ class CallerIdHistory : AppCompatActivity() {
 
         val useName = getUserName()
         setContent {
-//            DisplayMobileNumber(callerInfo.mobileNumber)
-            CallerIdHistory(callerInfo.mobileNumber, useName)
+            CallerIdHistoryScreen(callerInfo.mobileNumber, useName) {
+                startActivity(CallRecordingPlayerActivity.intent(this, it))
+            }
         }
-    }
-
-    @Composable
-    fun DisplayMobileNumber(mobileNumber:String){
-        Text(text = mobileNumber)
     }
 
     private fun getUserName(): String? {
@@ -87,7 +85,11 @@ class CallerIdHistory : AppCompatActivity() {
 
 @ExperimentalMaterial3Api
 @Composable
-fun CallerIdHistory(mobileNumber: String, name: String?) {
+fun CallerIdHistoryScreen(
+    mobileNumber: String,
+    name: String?,
+    selectedItem: (RegisteredCall) -> Unit
+) {
     val context = LocalContext.current
     val callerIdHistory = remember { getCallHistory(context, mobileNumber) };
 
@@ -113,7 +115,7 @@ fun CallerIdHistory(mobileNumber: String, name: String?) {
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             items(callerIdHistory) {
-                CallHistoryCard(it)
+                CallHistoryCard(it, selectedItem)
             }
         }
     }
@@ -122,7 +124,8 @@ fun CallerIdHistory(mobileNumber: String, name: String?) {
 
 @Composable
 fun CallHistoryCard(
-    registeredCall: RegisteredCall
+    registeredCall: RegisteredCall,
+    selectedItem: (RegisteredCall) -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -134,6 +137,21 @@ fun CallHistoryCard(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .padding(horizontal = 16.dp, vertical = 8.dp)
+                .clickable {
+                    var audioFile =
+                        File("/data/user/0/com.anr.call_recording_app_1/files/audio1.mp3")
+                    selectedItem(
+                        RegisteredCall(
+                            registeredCall.id,
+                            registeredCall.mobileNumber,
+                            registeredCall.name,
+                            registeredCall.callType,
+                            registeredCall.dateTime,
+                            registeredCall.duration,
+                            audioFile
+                        )
+                    )
+                }
 
         ) {
             Box(

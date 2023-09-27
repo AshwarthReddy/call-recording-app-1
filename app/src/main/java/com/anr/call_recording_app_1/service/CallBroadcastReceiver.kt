@@ -1,74 +1,63 @@
 package com.anr.call_recording_app_1.service
 
-import android.Manifest
-import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Context.TELEPHONY_SERVICE
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.media.AudioFormat
-import android.media.AudioRecord
-import android.media.MediaRecorder
+import android.telephony.PhoneStateListener
+import android.telephony.TelephonyManager
 import android.util.Log
-import android.widget.Toast
-import androidx.core.app.ActivityCompat
-import com.anr.call_recording_app_1.model.PhoneCall
-import com.anr.call_recording_app_1.model.phoneCallInformation
+import java.io.File
+
 
 class CallBroadcastReceiver : BroadcastReceiver() {
-    private fun handleIncomingCall(context: Context, phoneCall: PhoneCall.Incoming) {
-        Toast.makeText(
-            context,
-            "Incoming: ${phoneCall.number}, state=${phoneCall.state}",
-            Toast.LENGTH_SHORT
-        ).show()
-        recordAudio(context)
 
+    private lateinit var telephonyManager: TelephonyManager
+    private lateinit var applicationContext: Context;
+
+    private val recorder by lazy {
+        applicationContext?.let { AudioRecorderImpl(it) }
     }
 
-    private fun recordAudio(context: Context) {
-        if (ActivityCompat.checkSelfPermission(
-                context,
-                Manifest.permission.RECORD_AUDIO
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            val record = AudioRecord.Builder()
-                .setAudioSource(MediaRecorder.AudioSource.MIC)
-                .setAudioFormat(
-                    AudioFormat.Builder()
-                        .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                        .setSampleRate(32000)
-                        .setChannelMask(AudioFormat.CHANNEL_IN_MONO)
-                        .build()
-                )
-                .setBufferSizeInBytes(2 * 1024)
-                .build()
-            record.startRecording();
-            return
-        } else {
-            Log.i("recording permission", "call recording permissions not permitted")
+
+    private fun startCallRecording() {
+        telephonyManager = applicationContext?.getSystemService(TELEPHONY_SERVICE) as TelephonyManager
+        val phoneStateListener = object : PhoneStateListener() {
+            override fun onCallStateChanged(state: Int, phoneNumber: String?) {
+                when (state) {
+                    TelephonyManager.CALL_STATE_OFFHOOK -> {
+                        startRecording();
+                    }
+
+                    TelephonyManager.CALL_STATE_IDLE -> {
+                        recorder?.stop()
+                    }
+                }
+            }
+        }
+
+        telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE)
+    }
+
+    private fun startRecording() {
+        var filePath = applicationContext.filesDir.absolutePath;
+
+        try {
+            val file: File = File(filePath)
+            if (!file.exists()){
+                file.mkdirs();
+            }
+            File(applicationContext.cacheDir, "audio1.mp3").also {
+                recorder?.start(it)
+            }
+
+        } catch (e: Exception) {
+            Log.e("error###, ", e.stackTraceToString())
         }
     }
 
-    private fun handleOutgoingCall(context: Context, phoneCall: PhoneCall.Outgoing) {
-        Toast.makeText(
-            context,
-            "Outgoing: ${phoneCall.number}",
-            Toast.LENGTH_SHORT
-        ).show()
-        recordAudio(context)
-        Log.i("outgoing_call", "outgoing call")
-
-    }
-
-    @Suppress("DEPRECATION")
-    @SuppressLint("MissingPermission", "UnsafeProtectedBroadcastReceiver")
-    override fun onReceive(context: Context, intent: Intent) {
-
-        when (val phoneCall = intent.phoneCallInformation()) {
-            is PhoneCall.Incoming -> handleIncomingCall(context, phoneCall)
-            is PhoneCall.Outgoing -> handleOutgoingCall(context, phoneCall)
-            else -> {}
-        }
+    override fun onReceive(context: Context?, intent: Intent?) {
+        if (context != null) applicationContext = context
+        startCallRecording()
     }
 }

@@ -39,7 +39,7 @@ fun getCallLogs(ctx: Context): List<RegisteredCall> {
                     phNumber, name,
                     getCallType(cursor = managedCursor),
                     convertLocalDate(callDuration),
-                    callDuration
+                    callDuration, null
                 )
                 callsHistory.add(call)
 
@@ -79,7 +79,7 @@ fun getCallHistory(ctx: Context, mobileNumber: String): List<RegisteredCall> {
                         id,
                         number, name, dir,
                         convertLocalDate(date),
-                        duration
+                        duration, null
                     )
                 );
             };

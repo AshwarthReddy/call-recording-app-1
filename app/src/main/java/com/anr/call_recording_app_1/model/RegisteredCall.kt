@@ -1,5 +1,6 @@
 package com.anr.recording.model
 
+import java.io.File
 import java.io.Serializable
 import java.time.LocalDateTime
 
@@ -18,6 +19,7 @@ data class RegisteredCall(
     var callType: CallType?,
     var dateTime: LocalDateTime,
     var duration: Long?,
+    var audioFile: File?
 ): Serializable
 
 
